@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LogoMark } from "../components/icons";
 import { ALL_LESSONS, BLOCKS, COURSE } from "../data/course";
 import { useProgress } from "../hooks";
+import CertSheet from "./CertSheet";
+import { exportElementsToPdf } from "./exportPdf";
 import type { Slide } from "./slides";
 import SlideContent from "./slides";
 
@@ -89,17 +91,89 @@ function readHash(total: number): number {
   return n >= 0 && n < total ? n : 0;
 }
 
-export default function DeckShell({
-  onExport,
-}: {
-  onExport: () => void;
-}) {
+export default function DeckShell() {
   const slides = useMemo(buildSlides, []);
   const [idx, setIdx] = useState(() => readHash(slides.length));
   const [dir, setDir] = useState<1 | -1>(1);
   const [toc, setToc] = useState(false);
 
   const progress = useProgress(ALL_LESSONS.length);
+
+  /* ---------- экспорт PDF (генерация файла, без диалога печати) ---------- */
+  const [pdfJob, setPdfJob] = useState<{ done: number; total: number } | null>(null);
+  const [pdfMsg, setPdfMsg] = useState<"done" | "error" | null>(null);
+  const busyRef = useRef(false);
+  const cancelRef = useRef(false);
+  const msgTimer = useRef<number | null>(null);
+
+  const flash = useCallback((m: "done" | "error") => {
+    setPdfMsg(m);
+    if (msgTimer.current) window.clearTimeout(msgTimer.current);
+    msgTimer.current = window.setTimeout(() => setPdfMsg(null), m === "done" ? 2000 : 3000);
+  }, []);
+
+  const exportSlides = useCallback(async () => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    cancelRef.current = false;
+    setPdfMsg(null);
+    setPdfJob({ done: 0, total: slides.length });
+    try {
+      const els = slides.map((s, i) => <SlideContent key={i} slide={s} print />);
+      const ok = await exportElementsToPdf(
+        els,
+        "remdiesel-ii-v-marketinge-slaidy.pdf",
+        (d, t) => setPdfJob({ done: d, total: t }),
+        () => cancelRef.current
+      );
+      setPdfJob(null);
+      if (ok) flash("done");
+    } catch {
+      setPdfJob(null);
+      flash("error");
+    } finally {
+      busyRef.current = false;
+    }
+  }, [slides, flash]);
+
+  /* сертификат: событие из CertPanel (слайд 95) */
+  useEffect(() => {
+    const h = (e: Event) => {
+      const name = (e as CustomEvent<string>).detail;
+      if (typeof name !== "string" || name.trim().length < 2 || busyRef.current) return;
+      let score = 0;
+      try {
+        const raw = localStorage.getItem("rdai-exam-v1");
+        if (raw) score = (JSON.parse(raw) as { score?: number })?.score ?? 0;
+      } catch {
+        /* noop */
+      }
+      busyRef.current = true;
+      cancelRef.current = false;
+      setPdfMsg(null);
+      setPdfJob({ done: 0, total: 1 });
+      const fileName = `sertifikat-${name.trim().replace(/\s+/g, "-").toLowerCase()}.pdf`;
+      exportElementsToPdf(
+        [<CertSheet key="cert" name={name.trim()} score={score} />],
+        fileName,
+        (d, t) => setPdfJob({ done: d, total: t }),
+        () => cancelRef.current
+      )
+        .then((ok) => {
+          setPdfJob(null);
+          if (ok) flash("done");
+        })
+        .catch(() => {
+          setPdfJob(null);
+          flash("error");
+        })
+        .finally(() => {
+          busyRef.current = false;
+        });
+    };
+    window.addEventListener("rdai:export-cert", h);
+    return () => window.removeEventListener("rdai:export-cert", h);
+  }, [flash]);
 
   const go = useCallback(
     (n: number, d?: 1 | -1) => {
@@ -268,10 +342,11 @@ export default function DeckShell({
               Содержание [O]
             </button>
             <button
-              onClick={onExport}
-              className="rounded bg-kamber px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-ink transition-colors hover:bg-kamber2"
+              onClick={exportSlides}
+              disabled={busyRef.current}
+              className="rounded bg-kamber px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-ink transition-colors hover:bg-kamber2 disabled:cursor-wait disabled:opacity-60"
             >
-              PDF · {slides.length} сл.
+              {pdfJob ? `PDF ${pdfJob.done}/${pdfJob.total}` : `PDF · ${slides.length} сл.`}
             </button>
           </div>
         </div>
@@ -384,6 +459,57 @@ export default function DeckShell({
           </div>
         </aside>
       </div>
+
+      {/* оверлей генерации PDF */}
+      {pdfJob && (
+        <div className="fixed bottom-24 right-4 z-[60] w-72 border border-edge bg-coal shadow-2xl sm:right-6">
+          <div className="hazard h-1.5" />
+          <div className="p-4">
+            <p className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-kamber">
+              Генерация PDF
+              <span className="blink inline-block h-2 w-2 bg-kamber" />
+            </p>
+            <div className="mt-3 h-2 w-full overflow-hidden bg-panel2">
+              <div
+                className="h-full bg-gradient-to-r from-kblue to-kamber transition-all duration-300"
+                style={{ width: `${pdfJob.total ? (pdfJob.done / pdfJob.total) * 100 : 0}%` }}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-steel">
+              <span className="tabular-nums">
+                {String(pdfJob.done).padStart(3, "0")} / {String(pdfJob.total).padStart(3, "0")} слайдов
+              </span>
+              <button
+                onClick={() => {
+                  cancelRef.current = true;
+                }}
+                className="text-alarm transition-colors hover:text-snow"
+              >
+                Отмена
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-steel">
+              Файл скачается автоматически. Не закрывайте вкладку.
+            </p>
+          </div>
+        </div>
+      )}
+      {pdfMsg && !pdfJob && (
+        <div
+          className={`fixed bottom-24 right-4 z-[60] w-72 border px-4 py-3 shadow-2xl sm:right-6 ${
+            pdfMsg === "done" ? "border-mint/60 bg-[#0d2018]" : "border-alarm/60 bg-[#241012]"
+          }`}
+        >
+          <p className={`font-mono text-[11px] font-bold uppercase tracking-widest ${pdfMsg === "done" ? "text-mint" : "text-alarm"}`}>
+            {pdfMsg === "done" ? "✓ PDF сохранён" : "Ошибка экспорта"}
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-steel">
+            {pdfMsg === "done"
+              ? "Файл в папке загрузок браузера."
+              : "Попробуйте ещё раз — генерация повторяема."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

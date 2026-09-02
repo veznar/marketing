@@ -280,13 +280,18 @@ function AgentTerminal({ scenarioId, print = false }: { scenarioId: string; prin
         <span className="ml-2 truncate font-mono text-[10px] uppercase tracking-[0.18em] text-steel">
           {scenario.name} · {scenario.lesson}
         </span>
-        {!print && (
-          <span className={`ml-auto shrink-0 font-mono text-[9px] uppercase tracking-widest ${running ? "text-kamber" : finished ? "text-mint" : "text-steel"}`}>
-            {running ? "выполняется" : finished ? "завершено" : "ожидание"}
-          </span>
-        )}
+        <span className={`ml-auto shrink-0 font-mono text-[9px] uppercase tracking-widest ${print ? "text-mint" : running ? "text-kamber" : finished ? "text-mint" : "text-steel"}`}>
+          {print ? "завершено" : running ? "выполняется" : finished ? "завершено" : "ожидание"}
+        </span>
       </div>
-      <div ref={bodyRef} className="max-h-56 min-h-[9rem] flex-1 space-y-2 overflow-y-auto p-3.5 font-mono text-[11.5px] leading-relaxed">
+      <div
+        ref={bodyRef}
+        className={
+          print
+            ? "min-h-[9rem] flex-1 space-y-2 p-3.5 font-mono text-[11.5px] leading-relaxed"
+            : "max-h-56 min-h-[9rem] flex-1 space-y-2 overflow-y-auto p-3.5 font-mono text-[11.5px] leading-relaxed"
+        }
+      >
         {shown === 0 && <p className="text-steel">// запустите агента — шаги появятся последовательно<span className="blink text-kamber">▌</span></p>}
         {scenario.steps.slice(0, shown).map((s, i) => (
           <div key={i} className={print ? "" : "step-in"}>
@@ -956,7 +961,7 @@ function CertPanel({ print = false, certName, onPrintCert }: { print?: boolean; 
             onClick={() => {
               if (passed && name.trim().length >= 2) {
                 onPrintCert?.(name.trim());
-                window.dispatchEvent(new CustomEvent("rdai:print-cert", { detail: name.trim() }));
+                window.dispatchEvent(new CustomEvent("rdai:export-cert", { detail: name.trim() }));
               }
             }}
             disabled={!passed || name.trim().length < 2}

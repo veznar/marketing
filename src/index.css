@@ -231,11 +231,16 @@ body {
   }
 }
 
-/* ---------- печать: экспорт PDF ---------- */
+/* ---------- экспорт PDF: стоп-кадр анимаций при рендере ---------- */
 
-.print-root {
-  display: none;
+body.exporting *,
+body.exporting *::before,
+body.exporting *::after {
+  animation: none !important;
+  transition: none !important;
 }
+
+/* ---------- печать (Ctrl+P): текущий слайд без сервисных панелей ---------- */
 
 @page {
   size: A4 landscape;
@@ -248,26 +253,14 @@ body {
     background: #0a0f16 !important;
     overflow: visible !important;
   }
-  #app-shell {
+  body * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .fixed {
     display: none !important;
   }
-  .print-root {
-    display: block !important;
+  #app-shell main {
+    padding: 0 !important;
   }
-  .pslide {
-    break-after: page;
-    page-break-after: always;
-  }
-}
-
-.pslide {
-  width: 297mm;
-  height: 209mm;
-  position: relative;
-  overflow: hidden;
-  background: #0a0f16;
-  color: #eef4fa;
-  font-family: var(--font-body);
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
 }
