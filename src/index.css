@@ -71,14 +71,6 @@ body {
   );
 }
 
-.hazard-thin {
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--color-kamber) 0 10px,
-    #10161f 10px 20px
-  );
-}
-
 .corners {
   position: relative;
 }

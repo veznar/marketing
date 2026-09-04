@@ -119,7 +119,7 @@ export default function DeckShell() {
     setPdfMsg(null);
     setPdfJob({ done: 0, total: slides.length });
     try {
-      const els = slides.map((s, i) => <SlideContent key={i} slide={s} print />);
+      const els = slides.map((s, i) => <SlideContent key={i} slide={s} print index={i} />);
       const ok = await exportElementsToPdf(
         els,
         "remdiesel-ii-v-marketinge-slaidy.pdf",
@@ -136,7 +136,7 @@ export default function DeckShell() {
     }
   }, [slides, flash]);
 
-  /* сертификат: событие из CertPanel (слайд 95) */
+  /* сертификат: событие из CertPanel */
   useEffect(() => {
     const h = (e: Event) => {
       const name = (e as CustomEvent<string>).detail;
@@ -301,6 +301,14 @@ export default function DeckShell() {
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-ink">
+      {/* амбиентный фон */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 grid-bg opacity-60" />
+        <div className="absolute -top-40 left-[16%] h-[480px] w-[640px] rounded-full bg-kdeep/25 blur-[140px]" />
+        <div className="absolute -bottom-48 right-[6%] h-[440px] w-[520px] rounded-full bg-kamber/[0.07] blur-[140px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(10,15,22,0.6)_100%)]" />
+      </div>
+
       {/* верхняя панель */}
       <div className="fixed inset-x-0 top-0 z-40 border-b border-edge/70 bg-ink/90 backdrop-blur-md">
         <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
@@ -360,14 +368,14 @@ export default function DeckShell() {
       </div>
 
       {/* слайд */}
-      <main className="flex flex-1 items-stretch pb-24 pt-14">
+      <main className="relative z-10 flex flex-1 items-stretch pb-24 pt-14">
         <div
           key={idx}
           className={`relative min-h-[calc(100dvh-14.5rem)] w-full ${
             dir === 1 ? "deck-enter-l" : "deck-enter-r"
           }`}
         >
-          <SlideContent slide={cur} goTo={go} />
+          <SlideContent slide={cur} goTo={go} index={idx} />
         </div>
       </main>
 

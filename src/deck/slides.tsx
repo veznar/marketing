@@ -56,6 +56,7 @@ type Props = {
   print?: boolean;
   certName?: string;
   onPrintCert?: (name: string) => void;
+  index?: number;
 };
 
 export const PART_LABELS = ["Постановка", "Технология", "Промт", "Ход решения", "Результат"];
@@ -810,7 +811,7 @@ function ExamPanel({ print = false }: { print?: boolean }) {
           <div className={`border px-4 py-3 ${best.passed ? "border-mint/60 bg-mint/10" : "border-alarm/50 bg-alarm/10"}`}>
             <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-steel">Лучший результат</p>
             <p className={`font-display text-xl font-bold ${best.passed ? "text-mint" : "text-alarm"}`}>{best.score} / 100</p>
-            {best.passed && <p className="mt-0.5 text-[11px] text-mint">Зачёт получен → слайд 95: сертификат</p>}
+            {best.passed && <p className="mt-0.5 text-[11px] text-mint">Зачёт получен → следующий слайд: сертификат</p>}
           </div>
         )}
       </div>
@@ -971,7 +972,7 @@ function CertPanel({ print = false, certName, onPrintCert }: { print?: boolean; 
           </button>
           {!passed && (
             <p className="mt-2.5 text-[11.5px] leading-relaxed text-steel">
-              Сертификат откроется после зачёта (порог — 70 баллов). Вернитесь на слайд 94 — экзамен.
+              Сертификат откроется после зачёта (порог — 70 баллов). Вернитесь на предыдущий слайд — экзамен.
             </p>
           )}
         </div>
@@ -1481,7 +1482,7 @@ function FinalSlide() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-steel">
           <Chip color="#7db8f5">[O] — содержание</Chip>
           <Chip color="#ffa14e">PDF — вся презентация</Chip>
-          <Chip color="#37c98b">сертификат — слайд 95</Chip>
+          <Chip color="#37c98b">сертификат — после зачёта</Chip>
         </div>
         <p className="mt-10 font-mono text-[10px] uppercase tracking-[0.24em] text-steel/70">
           © 2025 Ремдизель AI-Академия · дочерняя структура КАМАЗ
@@ -1494,7 +1495,7 @@ function FinalSlide() {
 
 /* ================= роутер слайдов ================= */
 
-export default function SlideContent({ slide, goTo, print = false, certName, onPrintCert }: Props) {
+export default function SlideContent({ slide, goTo, print = false, certName, onPrintCert, index }: Props) {
   switch (slide.kind) {
     case "title":
       return <TitleSlide print={print} goTo={goTo} />;
@@ -1541,7 +1542,9 @@ export default function SlideContent({ slide, goTo, print = false, certName, onP
     case "exam":
       return (
         <div className="mx-auto flex h-full max-w-7xl flex-col justify-center px-4 py-6 sm:px-6 md:py-8">
-          <Kicker color="#7db8f5">Блок 04 · Защита проекта · слайд 94</Kicker>
+          <Kicker color="#7db8f5">
+            Блок 04 · Защита проекта{index !== undefined ? ` · слайд ${index + 1}` : ""}
+          </Kicker>
           <h2 className="mb-5 mt-2 font-display text-xl font-bold text-snow md:text-3xl">Финальное задание у ИИ-экзаменатора</h2>
           <ExamPanel print={print} />
         </div>
@@ -1549,7 +1552,9 @@ export default function SlideContent({ slide, goTo, print = false, certName, onP
     case "cert":
       return (
         <div className="mx-auto flex h-full max-w-7xl flex-col justify-center px-4 py-6 sm:px-6 md:py-8">
-          <Kicker color="#37c98b">Блок 04 · Итог обучения · слайд 95</Kicker>
+          <Kicker color="#37c98b">
+            Блок 04 · Итог обучения{index !== undefined ? ` · слайд ${index + 1}` : ""}
+          </Kicker>
           <h2 className="mb-5 mt-2 font-display text-xl font-bold text-snow md:text-3xl">Именной PDF-сертификат</h2>
           <CertPanel print={print} certName={certName} onPrintCert={onPrintCert} />
         </div>
