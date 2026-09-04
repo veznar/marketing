@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LogoMark } from "../components/icons";
 import { ALL_LESSONS, BLOCKS, COURSE } from "../data/course";
 import { useProgress } from "../hooks";
-import CertSheet from "./CertSheet";
-import { exportElementsToPdf } from "./exportPdf";
 import type { Slide } from "./slides";
 import SlideContent from "./slides";
 
@@ -117,13 +115,12 @@ export default function DeckShell() {
     busyRef.current = true;
     cancelRef.current = false;
     setPdfMsg(null);
-    setPdfJob({ done: 0, total: slides.length });
+    setPdfJob({ done: 0, total: slides.length + 1 });
     try {
-      const els = slides.map((s, i) => <SlideContent key={i} slide={s} print index={i} />);
-      const ok = await exportElementsToPdf(
-        els,
-        "remdiesel-ii-v-marketinge-slaidy.pdf",
-        (d, t) => setPdfJob({ done: d, total: t }),
+      const { exportDeckPdf } = await import("./pdfDoc");
+      const ok = await exportDeckPdf(
+        slides,
+        (d, t) => setPdfJob({ done: d + 1, total: t + 1 }),
         () => cancelRef.current
       );
       setPdfJob(null);
@@ -151,14 +148,9 @@ export default function DeckShell() {
       busyRef.current = true;
       cancelRef.current = false;
       setPdfMsg(null);
-      setPdfJob({ done: 0, total: 1 });
-      const fileName = `sertifikat-${name.trim().replace(/\s+/g, "-").toLowerCase()}.pdf`;
-      exportElementsToPdf(
-        [<CertSheet key="cert" name={name.trim()} score={score} />],
-        fileName,
-        (d, t) => setPdfJob({ done: d, total: t }),
-        () => cancelRef.current
-      )
+      setPdfJob({ done: 0, total: 2 });
+      import("./pdfDoc")
+        .then(({ exportCertPdf }) => exportCertPdf(name.trim(), score, (d) => setPdfJob({ done: d + 1, total: 2 }), () => cancelRef.current))
         .then((ok) => {
           setPdfJob(null);
           if (ok) flash("done");
@@ -474,7 +466,7 @@ export default function DeckShell() {
           <div className="hazard h-1.5" />
           <div className="p-4">
             <p className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-kamber">
-              Генерация PDF
+              {pdfJob.done === 0 ? "Загрузка шрифтов" : "Вёрстка страниц"}
               <span className="blink inline-block h-2 w-2 bg-kamber" />
             </p>
             <div className="mt-3 h-2 w-full overflow-hidden bg-panel2">
@@ -485,7 +477,9 @@ export default function DeckShell() {
             </div>
             <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-steel">
               <span className="tabular-nums">
-                {String(pdfJob.done).padStart(3, "0")} / {String(pdfJob.total).padStart(3, "0")} слайдов
+                {pdfJob.done === 0
+                  ? "кириллица · встраивание TTF"
+                  : `${String(pdfJob.done).padStart(3, "0")} / ${String(pdfJob.total - 1).padStart(3, "0")} стр.`}
               </span>
               <button
                 onClick={() => {
@@ -497,7 +491,7 @@ export default function DeckShell() {
               </button>
             </div>
             <p className="mt-2 text-[11px] leading-relaxed text-steel">
-              Файл скачается автоматически. Не закрывайте вкладку.
+              Машиночитаемый PDF: текст выделяется и ищётся. Файл скачается автоматически.
             </p>
           </div>
         </div>
@@ -513,8 +507,8 @@ export default function DeckShell() {
           </p>
           <p className="mt-1 text-[11px] leading-relaxed text-steel">
             {pdfMsg === "done"
-              ? "Файл в папке загрузок браузера."
-              : "Попробуйте ещё раз — генерация повторяема."}
+              ? "Файл в загрузках: текст выделяется, работает поиск."
+              : "Не удалось загрузить шрифты или собрать файл. Попробуйте ещё раз."}
           </p>
         </div>
       )}
