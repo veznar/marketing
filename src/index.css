@@ -5,21 +5,19 @@
   --font-body: "Golos Text", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Consolas", monospace;
 
-  --color-ink: #0a0f16;
-  --color-coal: #0d141d;
-  --color-panel: #111a26;
-  --color-panel2: #16212f;
-  --color-edge: #223040;
-  --color-steel: #8ca0b3;
-  --color-fog: #c7d3df;
-  --color-snow: #eef4fa;
-  --color-kblue: #2f86e6;
-  --color-kice: #7db8f5;
-  --color-kdeep: #0b3e7d;
-  --color-kamber: #ff7a1f;
-  --color-kamber2: #ffa14e;
-  --color-mint: #37c98b;
-  --color-alarm: #e8503a;
+  --color-bg: #ffffff;
+  --color-panel: #f8f9fa;
+  --color-edge: #e0e0e0;
+  --color-steel: #6b7280;
+  --color-fog: #374151;
+  --color-ink: #111827;
+  --color-kblue: #2563eb;
+  --color-kice: #3b82f6;
+  --color-kdeep: #1e40af;
+  --color-kamber: #f97316;
+  --color-kamber2: #fb923c;
+  --color-mint: #10b981;
+  --color-alarm: #ef4444;
 }
 
 html {
@@ -27,7 +25,7 @@ html {
 }
 
 body {
-  background: var(--color-ink);
+  background: var(--color-bg);
   color: var(--color-fog);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -35,8 +33,8 @@ body {
 }
 
 ::selection {
-  background: rgba(255, 122, 31, 0.35);
-  color: var(--color-snow);
+  background: rgba(37, 99, 235, 0.2);
+  color: var(--color-ink);
 }
 
 ::-webkit-scrollbar {
@@ -44,176 +42,14 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d141d;
+  background: #f3f4f6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #223040;
+  background: #d1d5db;
   border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2f86e6;
-}
-
-/* ---------- фирменные утилиты ---------- */
-
-.grid-bg {
-  background-image:
-    linear-gradient(rgba(140, 160, 179, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(140, 160, 179, 0.055) 1px, transparent 1px);
-  background-size: 44px 44px;
-}
-
-.hazard {
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--color-kamber) 0 16px,
-    #10161f 16px 32px
-  );
-}
-
-.corners {
-  position: relative;
-}
-.corners::before,
-.corners::after {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  pointer-events: none;
-  z-index: 2;
-}
-.corners::before {
-  top: -1px;
-  left: -1px;
-  border-top: 2px solid var(--color-kamber);
-  border-left: 2px solid var(--color-kamber);
-}
-.corners::after {
-  bottom: -1px;
-  right: -1px;
-  border-bottom: 2px solid var(--color-kblue);
-  border-right: 2px solid var(--color-kblue);
-}
-
-.scanline {
-  background-image: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(47, 134, 230, 0.16) 50%,
-    transparent 100%
-  );
-  background-size: 100% 140px;
-  background-repeat: no-repeat;
-  animation: scan 5.5s ease-in-out infinite;
-}
-@keyframes scan {
-  0%,
-  100% {
-    background-position: 0 -140px;
-  }
-  50% {
-    background-position: 0 100%;
-  }
-}
-
-.blink {
-  animation: blink 1.1s steps(2, start) infinite;
-}
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-.step-in {
-  animation: stepIn 0.35s ease both;
-}
-@keyframes stepIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.deck-enter-l {
-  animation: deckInL 0.42s cubic-bezier(0.22, 0.8, 0.3, 1) both;
-}
-@keyframes deckInL {
-  from {
-    opacity: 0;
-    transform: translateX(26px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.deck-enter-r {
-  animation: deckInR 0.42s cubic-bezier(0.22, 0.8, 0.3, 1) both;
-}
-@keyframes deckInR {
-  from {
-    opacity: 0;
-    transform: translateX(-26px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.bar-grow {
-  transform-origin: left center;
-  animation: barGrow 0.9s cubic-bezier(0.22, 0.8, 0.3, 1) both;
-}
-@keyframes barGrow {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-.col-grow {
-  transform-origin: bottom center;
-  animation: colGrow 0.8s cubic-bezier(0.22, 0.8, 0.3, 1) both;
-}
-@keyframes colGrow {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .blink,
-  .scanline,
-  .step-in,
-  .deck-enter-l,
-  .deck-enter-r,
-  .bar-grow,
-  .col-grow {
-    animation: none !important;
-  }
-  html {
-    scroll-behavior: auto;
-  }
-}
-
-/* экспорт PDF: стоп-кадр анимаций при генерации */
-body.exporting *,
-body.exporting *::before,
-body.exporting *::after {
-  animation: none !important;
-  transition: none !important;
+  background: #9ca3af;
 }
 
 /* печать (Ctrl+P): текущий слайд без сервисных панелей */
@@ -224,7 +60,7 @@ body.exporting *::after {
 @media print {
   html,
   body {
-    background: #0a0f16 !important;
+    background: #ffffff !important;
     overflow: visible !important;
   }
   body * {
