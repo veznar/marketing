@@ -1,5 +1,9 @@
+import DeckShell from "./deck/DeckShell";
+
 export default function App() {
   return (
-    <div/>
+    <div id="app-shell">
+      <DeckShell />
+    </div>
   );
 }
