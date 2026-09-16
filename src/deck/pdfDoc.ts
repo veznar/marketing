@@ -3,10 +3,21 @@ import { ALL_LESSONS, BLOCKS, CJM_STAGES, COURSE, MARKET_FORECAST, PRODUCT_SPECS
 import type { Slide } from "./slides";
 
 const K = {
-  bg: [255, 255, 255], panel: [248, 249, 250], edge: [224, 224, 224],
-  steel: [107, 114, 128], fog: [55, 65, 81], ink: [17, 24, 39],
-  blue: [37, 99, 235], ice: [59, 130, 246], deep: [30, 64, 175],
-  amber: [249, 115, 22], amber2: [251, 146, 60], mint: [16, 185, 129],
+  bg: [10, 15, 22],      // тёмный фон (как ink)
+  ink: [10, 15, 22],
+  panel: [17, 26, 38],
+  panel2: [22, 33, 47],
+  edge: [34, 48, 64],
+  steel: [140, 160, 179],
+  fog: [199, 211, 223],
+  snow: [238, 244, 250],  // светлый текст
+  blue: [47, 134, 230],
+  ice: [125, 184, 245],
+  deep: [11, 62, 125],
+  amber: [255, 122, 31],
+  amber2: [255, 161, 78],
+  mint: [55, 201, 139],
+  alarm: [232, 80, 58],
 } as const;
 
 type RGB = readonly [number, number, number];
@@ -128,7 +139,7 @@ class Deck {
     d.setTextColor(color[0], color[1], color[2]);
     d.text(X(text).toUpperCase(), M + 4.6, y, { baseline: "middle" });
   }
-  title(text: string, y = 32, size = 19, color: RGB = K.ink) {
+  title(text: string, y = 32, size = 19, color: RGB = K.snow) {
     const d = this.doc;
     d.setFont("Russo", "normal"); d.setFontSize(size);
     d.setTextColor(color[0], color[1], color[2]);
@@ -149,7 +160,7 @@ class Deck {
   }
   para(text: string, x: number, y: number, w: number, opts: { size?: number; color?: RGB; font?: "PT" | "JBM"; bold?: boolean; lh?: number } = {}): number {
     const d = this.doc;
-    const { size = 9.5, color = K.fog, font = "PT", bold = false, lh = 1.45 } = opts;
+    const { size = 9.5, color = K.snow, font = "PT", bold = false, lh = 1.45 } = opts;
     d.setFont(font, bold ? "bold" : "normal"); d.setFontSize(size);
     d.setTextColor(color[0], color[1], color[2]);
     const lines = d.splitTextToSize(X(text), w);
@@ -243,14 +254,13 @@ const PARTS = ["Постановка", "Технология", "Промт", "Х
 
 function lessonHeader(deck: Deck, lessonNum: string, title: string, part: number, accent: RGB, blockLine: string) {
   const d = deck.doc;
-  d.setFont("Russo", "normal"); d.setFontSize(25);
-  d.setTextColor(accent[0], accent[1], accent[2]);
-  d.text(lessonNum, M, 31);
-  deck.label(blockLine, M + 30, 20, K.steel, 6.8);
-  d.setFont("Russo", "normal"); d.setFontSize(14.5);
-  d.setTextColor(K.ink[0], K.ink[1], K.ink[2]);
-  const lines = d.splitTextToSize(X(title), 190);
-  d.text(lines, M + 30, 25, { baseline: "top" });
+    d.setFont("Russo", "normal"); d.setFontSize(25);
+    d.setTextColor(accent[0], accent[1], accent[2]);
+    d.text(lessonNum, M, 31);
+    deck.label(blockLine, M + 30, 20, K.steel, 6.8);
+    d.setFont("Russo", "normal"); d.setFontSize(14.5);
+    d.setTextColor(K.snow[0], K.snow[1], K.snow[2]);
+    const lines = d.splitTextToSize(X(title), 190);  d.text(lines, M + 30, 25, { baseline: "top" });
 
   const sx = W - M - 5 * 13.5 + 2.5;
   PARTS.forEach((p, i) => {
@@ -282,7 +292,7 @@ function lessonPage(deck: Deck, lessonId: string, part: number, n: number, total
   if (part === 0) {
     deck.accentBox(x, y, w, 30, accent);
     deck.label("Задача урока", x + 5, y + 6, accent);
-    deck.para(lesson.goal, x + 5, y + 10, w - 10, { size: 11.5, color: K.ink });
+    deck.para(lesson.goal, x + 5, y + 10, w - 10, { size: 11.5, color: K.snow });
     y += 36;
     deck.accentBox(x, y, w, 34, K.steel);
     deck.label("Что происходит в кейсе на этом шаге", x + 5, y + 6, K.steel);
@@ -388,7 +398,7 @@ function lessonPage(deck: Deck, lessonId: string, part: number, n: number, total
   if (part === 4) {
     deck.accentBox(x, y, w, 36, K.mint);
     deck.label("Решение кейса", x + 5, y + 6, K.mint);
-    deck.para(lesson.solution, x + 5, y + 10.5, w - 10, { size: 10, color: K.ink });
+    deck.para(lesson.solution, x + 5, y + 10.5, w - 10, { size: 10, color: K.snow });
     y += 42;
     const mw = (w - 12) / 3;
     lesson.metrics.forEach((m, i) => {
@@ -423,19 +433,17 @@ function titlePage(deck: Deck, n: number, total: number) {
   deck.bg();
   const d = deck.doc;
   deck.kicker(`обучающая платформа · B2B · ${COURSE.hours} академических часов`);
-  d.setFont("Russo", "normal"); d.setFontSize(30);
-  d.setTextColor(K.ink[0], K.ink[1], K.ink[2]);
-  d.text("ИИ в маркетинге:", M, 46);
-  d.setTextColor(K.ice[0], K.ice[1], K.ice[2]);
-  d.text("от стратегии", M, 62);
-  d.setTextColor(K.amber[0], K.amber[1], K.amber[2]);
-  d.text("до тактики", M + d.getTextWidth("от стратегии  "), 62);
-  deck.para("Курс-презентация для маркетологов B2B, продуктовых менеджеров и стратегов. 16 уроков, каждый разбит на 5 слайдов-частей: постановка – технология – промт – ход решения – результат.", M, 74, 150, { size: 10 });
+    d.setFont("Russo", "normal"); d.setFontSize(30);
+    d.setTextColor(K.snow[0], K.snow[1], K.snow[2]);
+    d.text("ИИ в маркетинге:", M, 46);
+    d.setTextColor(K.ice[0], K.ice[1], K.ice[2]);
+    d.text("от стратегии", M, 62);
+    d.setTextColor(K.amber[0], K.amber[1], K.amber[2]);
+    d.text("до тактики", M + d.getTextWidth("от стратегии  "), 62);  deck.para("Курс-презентация для маркетологов B2B, продуктовых менеджеров и стратегов. 16 уроков, каждый разбит на 5 слайдов-частей: постановка – технология – промт – ход решения – результат.", M, 74, 150, { size: 10 });
   deck.accentBox(M, 98, 150, 40, K.amber);
   deck.label("сквозной кейс // «Ремдизель» × КАМАЗ", M + 5, 105, K.steel);
   deck.para("Продуктовая и маркетинговая стратегия пожарной техники на шасси КАМАЗ (включая робототехнику) – 20% рынка РФ к 2032 году.", M + 5, 110, 140, { size: 10.5, color: K.ink });
-  deck.para("Рынок 2024: ~45 млрд руб. · рост 7% в год · план 450–500 машин в год", M + 5, 126, 140, { size: 8.6, font: "JBM" });
-  const cx = M + 162;
+    deck.para("Рынок 2024: ~45 млрд руб. · рост 7% в год · план 450–500 машин в год", M + 5, 126, 140, { size: 8.6, font: "JBM", color: K.snow });  const cx = M + 162;
   deck.rect(cx, 40, 107, 98, K.panel, K.edge);
   deck.label("паспорт курса", cx + 6, 50, K.amber2);
   const facts: [string, string][] = [
@@ -471,8 +479,7 @@ function methodPage(deck: Deck, n: number, total: number) {
     deck.para(s[0], x + 5, y + 6, bw - 10, { size: 9.5, font: "JBM", bold: true, color: K.ink });
     deck.para(s[1], x + 5, y + 15, bw - 10, { size: 8.4 });
   });
-  deck.para("Справа на слайдах урока живёт доска кейса — каркас основного слайда. Каждая следующая часть заполняет один слот: к пятому слайду урок собран целиком.", M, y + 62, W - M * 2, { size: 9.5, color: K.fog });
-  deck.label("← → или свайп — смена слайдов · пробел — вперёд · PDF — экспорт с текстовым слоем", M, y + 80, K.ice, 7);
+    deck.para("Справа на слайдах урока живёт доска кейса — каркас основного слайда. Каждая следующая часть заполняет один слот: к пятому слайду урок собран целиком.", M, y + 62, W - M * 2, { size: 9.5, color: K.snow });  deck.label("← → или свайп — смена слайдов · пробел — вперёд · PDF — экспорт с текстовым слоем", M, y + 80, K.ice, 7);
   deck.footer(n, total);
 }
 
@@ -506,8 +513,7 @@ function casePage(deck: Deck, n: number, total: number) {
   d.setFillColor(K.amber[0], K.amber[1], K.amber[2]);
   d.rect(M, y, 1.6, 26, "F");
   deck.label("цель кейса", M + 6, y + 7, K.amber2);
-  deck.para("Разработать продуктовую и маркетинговую стратегию пожарной техники на шасси КАМАЗ (включая робототехнику) для захвата 20% рынка РФ к 2032 году.", M + 6, y + 11, W - M * 2 - 14, { size: 11, color: K.ink });
-  const cells: [string, string, string][] = [
+    deck.para("Разработать продуктовую и маркетинговую стратегию пожарной техники на шасси КАМАЗ (включая робототехнику) для захвата 20% рынка РФ к 2032 году.", M + 6, y + 11, W - M * 2 - 14, { size: 11, color: K.snow });  const cells: [string, string, string][] = [
     ["Компания", "«Ремдизель» — дочерняя структура КАМАЗ; компетенции в ремонте и модернизации армейских машин.", "Компетенции"],
     ["Продукт", "Автоцистерна на шасси КАМАЗ-43118 с роботизированным лафетным стволом РТ-80: оператор — в 100 м от кромки пожара.", "Роботика"],
     ["Рынок", "~45 млрд руб. в 2024 году, рост 7% в год на госпрограммах перевооружения МЧС и роботизации ТЭК.", "45 млрд"],
@@ -543,8 +549,7 @@ function productPage(deck: Deck, n: number, total: number) {
   });
   deck.accentBox(M, y + PRODUCT_SPECS.length * 13.5 + 8, W - M * 2, 24, K.amber);
   deck.label("гипотеза-ядро (RICE 850)", M + 6, y + PRODUCT_SPECS.length * 13.5 + 15, K.amber2);
-  deck.para("Интеграция беспилотного роботизированного модуля тушения на базе КАМАЗ, управляемого оператором из безопасной зоны (до 100 м) — отстройка от конкурентов.", M + 6, y + PRODUCT_SPECS.length * 13.5 + 19, W - M * 2 - 14, { size: 9.5, color: K.fog });
-  deck.footer(n, total);
+    deck.para("Интеграция беспилотного роботизированного модуля тушения на базе КАМАЗ, управляемого оператором из безопасной зоны (до 100 м) — отстройка от конкурентов.", M + 6, y + PRODUCT_SPECS.length * 13.5 + 19, W - M * 2 - 14, { size: 9.5, color: K.snow });  deck.footer(n, total);
 }
 
 function mathPage(deck: Deck, n: number, total: number) {
@@ -604,10 +609,9 @@ function blockPage(deck: Deck, blockId: number, n: number, total: number) {
   deck.bg();
   const d = deck.doc;
   deck.kicker(`${b.code} · ${b.hours} академических часа`, accent);
-  d.setFont("Russo", "normal"); d.setFontSize(30);
-  d.setTextColor(K.ink[0], K.ink[1], K.ink[2]);
-  d.text(X(b.title), M, 48);
-  deck.para(`Задача: ${b.task.toLowerCase()}.`, M, 58, 200, { size: 11, color: K.fog });
+    d.setFont("Russo", "normal"); d.setFontSize(30);
+    d.setTextColor(K.snow[0], K.snow[1], K.snow[2]);
+    d.text(X(b.title), M, 48);  deck.para(`Задача: ${b.task.toLowerCase()}.`, M, 58, 200, { size: 11, color: K.fog });
   b.lessons.forEach((l, i) => {
     const yy = 74 + i * 17;
     deck.rect(M, yy, W - M * 2, 14, K.panel, K.edge);
@@ -624,7 +628,7 @@ function blockPage(deck: Deck, blockId: number, n: number, total: number) {
     d.text(`${l.tech.kind.toUpperCase()} · 5 слайдов`, W - M - 6, yy + 7, { align: "right", baseline: "middle" });
   });
   if (b.lessons.length === 0) {
-    deck.para("Финальное задание: слушатель пишет собственный промт для «виртуального тестирования» и получает оценку ИИ-экзаменатора по 5 критериям. Порог зачёта — 70 баллов; после зачёта генерируется именной PDF-сертификат.", M, 78, W - M * 2, { size: 10.5 });
+    deck.para("Финальное задание: слушатель пишет собственный промт для «виртуального тестирования» и получает оценку ИИ-экзаменатора по 5 критериям. Порог зачёта — 70 баллов; после зачёта генерируется именной PDF-сертификат.", M, 78, W - M * 2, { size: 10.5, color: K.snow });
   }
   deck.footer(n, total);
 }
@@ -654,16 +658,14 @@ function blockSummaryPage(deck: Deck, blockId: number, n: number, total: number)
   });
   deck.accentBox(M, y + 34, W - M * 2, 22, accent);
   deck.label("вывод блока", M + 6, y + 41, accent);
-  deck.para(r.line, M + 6, y + 45, W - M * 2 - 14, { size: 10.5, color: K.ink });
-  deck.footer(n, total);
+    deck.para(r.line, M + 6, y + 45, W - M * 2 - 14, { size: 10.5, color: K.snow });  deck.footer(n, total);
 }
 
 function examPage(deck: Deck, n: number, total: number) {
   const y = chrome(deck, "блок 04 · защита проекта", "Финальное задание у ИИ-экзаменатора", n, total, K.ice);
   deck.accentBox(M, y, W - M * 2, 30, K.amber);
   deck.label("задание", M + 6, y + 7, K.amber2);
-  deck.para("Напишите собственный промт для «виртуального тестирования» роботизированного КАМАЗа (Multi-Agent Simulation, урок 2.5). Экзаменатор разберёт его по 5 критериям промт-инжиниринга. Порог зачёта — 70 баллов.", M + 6, y + 11, W - M * 2 - 14, { size: 9.5, color: K.fog });
-  const crit: [string, string][] = [
+    deck.para("Напишите собственный промт для «виртуального тестирования» роботизированного КАМАЗа (Multi-Agent Simulation, урок 2.5). Экзаменатор разберёт его по 5 критериям промт-инжиниринга. Порог зачёта — 70 баллов.", M + 6, y + 11, W - M * 2 - 14, { size: 9.5, color: K.snow });  const crit: [string, string][] = [
     ["Роль и субъект", "агентам заданы роли и мотивации"],
     ["Контекст кейса", "продукт «Ремдизель», шасси КАМАЗ, сценарий резервуарного пожара"],
     ["Задача и действия", "глаголы: «задайте вопросы», «найдите уязвимости», «протестируйте возражения»"],
@@ -701,8 +703,7 @@ function certPage(deck: Deck, n: number, total: number) {
     d.text(s[0], M + 6, yy + 10.5, { baseline: "middle" });
     deck.para(s[1], M + 52, yy + 6.6, W - M * 2 - 62, { size: 9 });
   });
-  deck.para("Сертификат подтверждает 16 академических часов курса «ИИ в маркетинге: от стратегии до тактики» и сдачу финального задания на материалах кейса «Ремдизель».", M, y + 86, W - M * 2, { size: 9.5 });
-  deck.footer(n, total);
+    deck.para("Сертификат подтверждает 16 академических часов курса «ИИ в маркетинге: от стратегии до тактики» и сдачу финального задания на материалах кейса «Ремдизель».", M, y + 86, W - M * 2, { size: 9.5, color: K.snow });  deck.footer(n, total);
 }
 
 function planPage(deck: Deck, n: number, total: number) {
@@ -723,8 +724,7 @@ function planPage(deck: Deck, n: number, total: number) {
   });
   deck.accentBox(M, y + 86, W - M * 2, 22, K.amber);
   deck.label("слоган линейки", M + 6, y + 93, K.amber2);
-  deck.para("«Технологии, которые спасают. Интеллект, который защищает». KPI 2025 года — 5% доли рынка: первый шаг к 20% к 2032-му.", M + 6, y + 97, W - M * 2 - 14, { size: 10, color: K.ink });
-  deck.footer(n, total);
+    deck.para("«Технологии, которые спасают. Интеллект, который защищает». KPI 2025 года — 5% доли рынка: первый шаг к 20% к 2032-му.", M + 6, y + 97, W - M * 2 - 14, { size: 10, color: K.snow });  deck.footer(n, total);
 }
 
 function takeawaysPage(deck: Deck, n: number, total: number) {
@@ -765,9 +765,8 @@ function finalPage(deck: Deck, n: number, total: number) {
   d.text("Технологии, которые спасают.", M, 62);
   d.setTextColor(K.amber[0], K.amber[1], K.amber[2]);
   d.text("Интеллект, который защищает.", M, 78);
-  deck.para("Сквозной кейс «Ремдизель» собран: рынок, продукт, каналы и сервис сведены в годовой план. Дальше — защита перед советом директоров и первые 50 машин.", M, 92, 190, { size: 10.5 });
-  deck.chips(["16 ак. часов", "99 слайдов", "45+ артефактов", "цель: 20% рынка к 2032"], M, 112, K.ice);
-  deck.label("ремдизель AI-академия · дочерняя структура КАМАЗ · 2025", M, 130, K.steel, 7);
+    deck.para("Сквозной кейс «Ремдизель» собран: рынок, продукт, каналы и сервис сведены в годовой план. Дальше — защита перед советом директоров и первые 50 машин.", M, 92, 190, { size: 10.5, color: K.snow });  deck.chips(["16 ак. часов", "99 слайдов", "45+ артефактов", "цель: 20% рынка к 2032"], M, 112, K.ice);
+  deck.label("ремдизель AI-академия · дочерняя структура КАМАЗ · 2025", M, 130, K.snow, 7);
   deck.footer(n, total);
 }
 
