@@ -174,7 +174,16 @@ export default function DeckShell() {
               }}
               className="rounded bg-kblue px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white hover:bg-kdeep"
             >
-              PDF · {slides.length} сл.
+              PDF
+            </button>
+            <button
+              onClick={async () => {
+                const { exportPptx } = await import("./pptxExport");
+                await exportPptx(slides);
+              }}
+              className="rounded bg-kamber px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white hover:bg-kamber2"
+            >
+              PPTX
             </button>
           </div>
         </div>
